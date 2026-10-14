@@ -49,7 +49,7 @@ export const ReportIssueScreen = ({ route, navigation }: RootStackScreenProps<'R
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScreenContainer>
-        <Text style={typography.h2}>What's wrong with {assetName}?</Text>
+        <Text style={typography.h2}>What&apos;s wrong with {assetName}?</Text>
         <Text style={styles.sub}>Your trip keeps running. If the vehicle is unsafe, stop and end the trip.</Text>
 
         {report.error && <ErrorBanner message={report.error.message} />}

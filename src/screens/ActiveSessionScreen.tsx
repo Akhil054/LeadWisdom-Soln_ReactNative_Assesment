@@ -25,7 +25,7 @@ import { batteryColor } from '../components/BatteryIndicator';
 
 export const ActiveSessionScreen = ({ navigation }: MainTabScreenProps<'ActiveTrip'>) => {
   const { data: rental, loading, refreshing, error, refetch, refresh } = useActiveRental();
-  const { remainingMs, isOverdue, progress } = useCountdown(rental?.startTime, rental?.endTime);
+  const { remainingMs, elapsedMs, isOverdue, progress } = useCountdown(rental?.startTime, rental?.endTime);
   const endTrip = useMutation(rentalService.endRental);
   const { isTablet } = useResponsive();
 
@@ -44,7 +44,6 @@ export const ActiveSessionScreen = ({ navigation }: MainTabScreenProps<'ActiveTr
     );
   }
 
-  const elapsedMs = Math.max(0, Date.now() - Date.parse(rental.startTime));
   const fareSoFar = (Math.max(1, Math.ceil(elapsedMs / 60_000)) / 60) * rental.hourlyRate;
   const lowBattery = rental.asset.batteryLevel < 20;
   const accent = isOverdue ? colors.danger : colors.primary;
@@ -106,7 +105,7 @@ export const ActiveSessionScreen = ({ navigation }: MainTabScreenProps<'ActiveTr
           </Text>
         </View>
         {isOverdue && (
-          <Text style={styles.overdueNote}>You're past your booked slot — fare keeps running until you end the trip.</Text>
+          <Text style={styles.overdueNote}>You&apos;re past your booked slot — fare keeps running until you end the trip.</Text>
         )}
       </View>
 
