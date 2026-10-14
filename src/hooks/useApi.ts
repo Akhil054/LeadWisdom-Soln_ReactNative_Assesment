@@ -27,10 +27,12 @@ export interface UseApiResult<T> {
 /**
  * Generic data-fetching hook: manages loading / error / success state and
  * protects against out-of-order responses and updates after unmount.
+ *
+ * `fetcher` must be referentially stable (a module function or a `useCallback`);
+ * a new fetcher identity is what triggers a re-fetch, e.g. when filters change.
  */
 export function useApi<T>(
   fetcher: () => Promise<T>,
-  deps: ReadonlyArray<unknown> = [],
   { immediate = true, pollInterval }: UseApiOptions = {},
 ): UseApiResult<T> {
   const [data, setData] = useState<T | null>(null);
@@ -38,56 +40,68 @@ export function useApi<T>(
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
 
+  // When the fetcher changes (new filters), flip to loading during render rather
+  // than in the effect — avoids an extra cascading render.
+  const [prevFetcher, setPrevFetcher] = useState(() => fetcher);
+  if (fetcher !== prevFetcher) {
+    setPrevFetcher(() => fetcher);
+    if (immediate) setLoading(true);
+  }
+
   const mounted = useRef(true);
   const requestId = useRef(0);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const stableFetcher = useCallback(fetcher, deps);
 
-  const run = useCallback(
-    async (mode: 'load' | 'refresh' | 'silent') => {
+  /** Performs the request; callers set the loading/refreshing flag beforehand. */
+  const execute = useCallback(
+    (mode: 'load' | 'refresh' | 'silent') => {
       const id = ++requestId.current;
-      if (mode === 'load') setLoading(true);
-      if (mode === 'refresh') setRefreshing(true);
-      try {
-        const result = await stableFetcher();
-        if (!mounted.current || id !== requestId.current) return;
-        setData(result);
-        setError(null);
-      } catch (e) {
-        if (!mounted.current || id !== requestId.current) return;
-        // Background polls keep showing the last good data instead of an error screen.
-        if (mode !== 'silent') setError(toApiError(e));
-      } finally {
-        if (mounted.current && id === requestId.current) {
+      const isCurrent = () => mounted.current && id === requestId.current;
+      return fetcher()
+        .then(
+          (result) => {
+            if (!isCurrent()) return;
+            setData(result);
+            setError(null);
+          },
+          (e: unknown) => {
+            // Background polls keep showing the last good data instead of an error screen.
+            if (isCurrent() && mode !== 'silent') setError(toApiError(e));
+          },
+        )
+        .finally(() => {
+          if (!isCurrent()) return;
           setLoading(false);
           setRefreshing(false);
-        }
-      }
+        });
     },
-    [stableFetcher],
+    [fetcher],
   );
 
   useEffect(() => {
     mounted.current = true;
-    if (immediate) run('load');
+    if (immediate) execute('load');
     return () => {
       mounted.current = false;
     };
-  }, [run, immediate]);
+  }, [execute, immediate]);
 
   useEffect(() => {
     if (!pollInterval) return;
-    const timer = setInterval(() => run('silent'), pollInterval);
+    const timer = setInterval(() => execute('silent'), pollInterval);
     return () => clearInterval(timer);
-  }, [run, pollInterval]);
+  }, [execute, pollInterval]);
 
-  return {
-    data,
-    loading,
-    refreshing,
-    error,
-    refetch: useCallback(() => run('load'), [run]),
-    refresh: useCallback(() => run('refresh'), [run]),
-    silentRefetch: useCallback(() => run('silent'), [run]),
-  };
+  const refetch = useCallback(() => {
+    setLoading(true);
+    return execute('load');
+  }, [execute]);
+
+  const refresh = useCallback(() => {
+    setRefreshing(true);
+    return execute('refresh');
+  }, [execute]);
+
+  const silentRefetch = useCallback(() => execute('silent'), [execute]);
+
+  return { data, loading, refreshing, error, refetch, refresh, silentRefetch };
 }

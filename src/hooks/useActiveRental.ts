@@ -8,7 +8,7 @@ import { useApi } from './useApi';
  * using it gains focus, and polls while visible to keep battery data fresh.
  */
 export const useActiveRental = () => {
-  const api = useApi(rentalService.getActiveRental, [], { pollInterval: 20_000 });
+  const api = useApi(rentalService.getActiveRental, { pollInterval: 20_000 });
   const { silentRefetch } = api;
 
   useFocusEffect(

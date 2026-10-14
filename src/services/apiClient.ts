@@ -1,10 +1,10 @@
-import axios, { AxiosError } from 'axios';
+import { AxiosError, create, isAxiosError } from 'axios';
 import { ApiError } from '../types';
 import { API_BASE_URL, REQUEST_TIMEOUT_MS, USE_MOCK_API } from './config';
 import { mockAdapter } from './mock/mockServer';
 
 /** Shared Axios instance used by every service module. */
-export const apiClient = axios.create({
+export const apiClient = create({
   baseURL: API_BASE_URL,
   timeout: REQUEST_TIMEOUT_MS,
   headers: { 'Content-Type': 'application/json' },
@@ -43,7 +43,7 @@ apiClient.interceptors.response.use(
 
 /** Converts any thrown value into a predictable { message, status } shape. */
 export const toApiError = (error: unknown): ApiError => {
-  if (axios.isAxiosError(error)) {
+  if (isAxiosError(error)) {
     const data = error.response?.data as { message?: string } | undefined;
     if (data?.message) return { message: data.message, status: error.response?.status };
     if (error.code === 'ECONNABORTED') return { message: 'Request timed out. Please try again.' };

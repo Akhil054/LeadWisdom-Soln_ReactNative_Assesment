@@ -7,11 +7,11 @@ import { useApi } from './useApi';
 export const useAssets = (filters: AssetFilters = {}) => {
   const { status, type } = filters;
   const fetcher = useCallback(() => assetService.getAssets({ status, type }), [status, type]);
-  return useApi(fetcher, [fetcher], { pollInterval: CATALOG_POLL_INTERVAL_MS });
+  return useApi(fetcher, { pollInterval: CATALOG_POLL_INTERVAL_MS });
 };
 
 /** Single asset details. */
 export const useAsset = (id: string) => {
   const fetcher = useCallback(() => assetService.getAsset(id), [id]);
-  return useApi(fetcher, [fetcher]);
+  return useApi(fetcher);
 };
