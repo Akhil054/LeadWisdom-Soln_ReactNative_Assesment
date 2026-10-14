@@ -3,9 +3,9 @@ import {
   AxiosHeaders,
   AxiosResponse,
   InternalAxiosRequestConfig,
-} from 'axios';
-import { Asset, AuthResponse, Issue, IssueCategory, Rental } from '../../types';
-import { createSeedAssets, estimateRange } from './mockData';
+} from "axios";
+import { Asset, AuthResponse, Issue, IssueCategory, Rental } from "../../types";
+import { createSeedAssets, estimateRange } from "./mockData";
 
 /**
  * A tiny in-memory REST server plugged into Axios as a custom adapter.
@@ -47,12 +47,12 @@ const tick = () => {
 
   db.assets = db.assets.map((asset) => {
     let { batteryLevel, status } = asset;
-    if (status === 'in_use') batteryLevel -= minutes * 1.5;
-    if (status === 'charging') batteryLevel += minutes * 4;
+    if (status === "in_use") batteryLevel -= minutes * 1.5;
+    if (status === "charging") batteryLevel += minutes * 4;
 
     batteryLevel = Math.max(0, Math.min(100, batteryLevel));
-    if (status === 'charging' && batteryLevel >= 100) status = 'available';
-    if (status === 'available' && batteryLevel < 10) status = 'charging';
+    if (status === "charging" && batteryLevel >= 100) status = "available";
+    if (status === "available" && batteryLevel < 10) status = "charging";
 
     const rounded = Math.round(batteryLevel);
     if (rounded === asset.batteryLevel && status === asset.status) return asset;
@@ -76,7 +76,10 @@ const updateAsset = (id: string, patch: Partial<Asset>) => {
 // ------------------------------------------------------------ helpers ---
 
 class HttpError extends Error {
-  constructor(public status: number, message: string) {
+  constructor(
+    public status: number,
+    message: string,
+  ) {
     super(message);
   }
 }
@@ -92,7 +95,7 @@ const delay = () =>
 
 const parseBody = (data: unknown): Record<string, any> => {
   if (!data) return {};
-  if (typeof data === 'string') {
+  if (typeof data === "string") {
     try {
       return JSON.parse(data);
     } catch {
@@ -104,10 +107,19 @@ const parseBody = (data: unknown): Record<string, any> => {
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PHONE_RE = /^[6-9]\d{9}$/;
-const ISSUE_CATEGORIES: IssueCategory[] = ['battery', 'brakes', 'tyre', 'lights', 'other'];
+const ISSUE_CATEGORIES: IssueCategory[] = [
+  "battery",
+  "brakes",
+  "tyre",
+  "lights",
+  "other",
+];
 
 const computeCost = (rental: Rental, endedAt: number) => {
-  const minutes = Math.max(1, Math.ceil((endedAt - Date.parse(rental.startTime)) / 60_000));
+  const minutes = Math.max(
+    1,
+    Math.ceil((endedAt - Date.parse(rental.startTime)) / 60_000),
+  );
   return Math.round((minutes / 60) * rental.hourlyRate * 100) / 100;
 };
 
@@ -131,53 +143,56 @@ const routes: Route[] = [];
 const route = (method: string, path: string, handler: Handler, auth = true) => {
   const keys: string[] = [];
   const pattern = new RegExp(
-    '^' + path.replace(/:(\w+)/g, (_, k) => (keys.push(k), '([^/]+)')) + '$',
+    "^" + path.replace(/:(\w+)/g, (_, k) => (keys.push(k), "([^/]+)")) + "$",
   );
   routes.push({ method, pattern, keys, auth, handler });
 };
 
 route(
-  'POST',
-  '/auth/login',
+  "POST",
+  "/auth/login",
   ({ body }) => {
-    const identifier = String(body.identifier ?? '').trim();
-    const password = String(body.password ?? '');
+    const identifier = String(body.identifier ?? "").trim();
+    const password = String(body.password ?? "");
     if (!EMAIL_RE.test(identifier) && !PHONE_RE.test(identifier)) {
-      throw new HttpError(422, 'Enter a valid email or 10-digit mobile number.');
+      throw new HttpError(
+        422,
+        "Enter a valid email or 10-digit mobile number.",
+      );
     }
     if (password.length < 6) {
-      throw new HttpError(401, 'Invalid credentials.');
+      throw new HttpError(401, "Invalid credentials.");
     }
-    const name = identifier.includes('@')
-      ? identifier.split('@')[0]
+    const name = identifier.includes("@")
+      ? identifier.split("@")[0]
       : `Rider ${identifier.slice(-4)}`;
     const response: AuthResponse = {
       token: `mock-token-${Date.now()}`,
-      user: { id: 'U-1', name, identifier },
+      user: { id: "U-1", name, identifier },
     };
     return { data: response };
   },
   false,
 );
 
-route('GET', '/assets', ({ query }) => {
+route("GET", "/assets", ({ query }) => {
   tick();
-  const status = query.get('status');
-  const type = query.get('type');
+  const status = query.get("status");
+  const type = query.get("type");
   let list = db.assets;
   if (status) list = list.filter((a) => a.status === status);
   if (type) list = list.filter((a) => a.type === type);
   return { data: list };
 });
 
-route('GET', '/assets/:id', ({ params }) => {
+route("GET", "/assets/:id", ({ params }) => {
   tick();
   const asset = db.assets.find((a) => a.id === params.id);
-  if (!asset) throw new HttpError(404, 'Asset not found.');
+  if (!asset) throw new HttpError(404, "Asset not found.");
   return { data: asset };
 });
 
-route('GET', '/rentals/active', () => {
+route("GET", "/rentals/active", () => {
   tick();
   if (db.activeRental) {
     // Keep the embedded asset snapshot fresh (battery drains during a trip).
@@ -187,26 +202,32 @@ route('GET', '/rentals/active', () => {
   return { data: db.activeRental };
 });
 
-route('POST', '/rentals', ({ body }) => {
+route("POST", "/rentals", ({ body }) => {
   tick();
   if (db.activeRental) {
-    throw new HttpError(409, 'You already have an active trip. End it before starting another.');
+    throw new HttpError(
+      409,
+      "You already have an active trip. End it before starting another.",
+    );
   }
   const asset = db.assets.find((a) => a.id === body.assetId);
-  if (!asset) throw new HttpError(404, 'Asset not found.');
-  if (asset.status !== 'available') {
-    throw new HttpError(409, 'This asset is no longer available. Please pick another one.');
+  if (!asset) throw new HttpError(404, "Asset not found.");
+  if (asset.status !== "available") {
+    throw new HttpError(
+      409,
+      "This asset is no longer available. Please pick another one.",
+    );
   }
   const durationMinutes = Number(body.durationMinutes);
   if (![15, 30, 60, 120].includes(durationMinutes)) {
-    throw new HttpError(422, 'Invalid rental duration.');
+    throw new HttpError(422, "Invalid rental duration.");
   }
   const start = Date.now();
-  const rented = updateAsset(asset.id, { status: 'in_use' });
+  const rented = updateAsset(asset.id, { status: "in_use" });
   db.activeRental = {
-    id: nextId('RN'),
+    id: nextId("RN"),
     asset: rented,
-    status: 'active',
+    status: "active",
     startTime: new Date(start).toISOString(),
     endTime: new Date(start + durationMinutes * 60_000).toISOString(),
     durationMinutes,
@@ -216,19 +237,20 @@ route('POST', '/rentals', ({ body }) => {
   return { status: 201, data: db.activeRental };
 });
 
-route('POST', '/rentals/:id/end', ({ params }) => {
+route("POST", "/rentals/:id/end", ({ params }) => {
   tick();
   const rental = db.activeRental;
-  if (!rental || rental.id !== params.id) throw new HttpError(404, 'Active trip not found.');
+  if (!rental || rental.id !== params.id)
+    throw new HttpError(404, "Active trip not found.");
   const endedAt = Date.now();
   const hasIssue = rental.issues.length > 0;
   const asset = updateAsset(rental.asset.id, {
-    status: hasIssue ? 'maintenance' : 'available',
+    status: hasIssue ? "maintenance" : "available",
   });
   const completed: Rental = {
     ...rental,
     asset,
-    status: 'completed',
+    status: "completed",
     endedAt: new Date(endedAt).toISOString(),
     totalCost: computeCost(rental, endedAt),
   };
@@ -237,17 +259,22 @@ route('POST', '/rentals/:id/end', ({ params }) => {
   return { data: completed };
 });
 
-route('POST', '/rentals/:id/issues', ({ params, body }) => {
+route("POST", "/rentals/:id/issues", ({ params, body }) => {
   const rental = db.activeRental;
-  if (!rental || rental.id !== params.id) throw new HttpError(404, 'Active trip not found.');
+  if (!rental || rental.id !== params.id)
+    throw new HttpError(404, "Active trip not found.");
   const category = body.category as IssueCategory;
-  const description = String(body.description ?? '').trim();
-  if (!ISSUE_CATEGORIES.includes(category)) throw new HttpError(422, 'Select an issue category.');
+  const description = String(body.description ?? "").trim();
+  if (!ISSUE_CATEGORIES.includes(category))
+    throw new HttpError(422, "Select an issue category.");
   if (description.length < 10) {
-    throw new HttpError(422, 'Please describe the issue in at least 10 characters.');
+    throw new HttpError(
+      422,
+      "Please describe the issue in at least 10 characters.",
+    );
   }
   const issue: Issue = {
-    id: nextId('IS'),
+    id: nextId("IS"),
     category,
     description,
     createdAt: new Date().toISOString(),
@@ -256,7 +283,7 @@ route('POST', '/rentals/:id/issues', ({ params, body }) => {
   return { status: 201, data: issue };
 });
 
-route('GET', '/rentals/history', () => ({ data: db.history }));
+route("GET", "/rentals/history", () => ({ data: db.history }));
 
 // ------------------------------------------------------------ adapter ---
 
@@ -265,20 +292,20 @@ export const mockAdapter = async (
 ): Promise<AxiosResponse> => {
   await delay();
 
-  const method = (config.method ?? 'get').toUpperCase();
-  const base = config.baseURL ?? '';
-  const rawUrl = (config.url ?? '').replace(base, '');
-  const [path, queryString = ''] = rawUrl.split('?');
+  const method = (config.method ?? "get").toUpperCase();
+  const base = config.baseURL ?? "";
+  const rawUrl = (config.url ?? "").replace(base, "");
+  const [path, queryString = ""] = rawUrl.split("?");
   const query = new URLSearchParams(queryString);
   Object.entries(config.params ?? {}).forEach(([k, v]) => {
-    if (v !== undefined && v !== null && v !== '') query.set(k, String(v));
+    if (v !== undefined && v !== null && v !== "") query.set(k, String(v));
   });
 
   const respond = (status: number, data: unknown): AxiosResponse => ({
     data,
     status,
     statusText: String(status),
-    headers: new AxiosHeaders({ 'content-type': 'application/json' }),
+    headers: new AxiosHeaders({ "content-type": "application/json" }),
     config,
   });
 
@@ -288,7 +315,7 @@ export const mockAdapter = async (
   };
 
   if (mockSettings.simulateErrors) {
-    fail(503, 'Service temporarily unavailable (simulated).');
+    fail(503, "Service temporarily unavailable (simulated).");
   }
 
   for (const r of routes) {
@@ -296,16 +323,20 @@ export const mockAdapter = async (
     const match = path.match(r.pattern);
     if (!match) continue;
 
-    const authHeader = config.headers?.Authorization ?? config.headers?.authorization;
-    if (r.auth && !authHeader) fail(401, 'Session expired. Please log in again.');
+    const authHeader =
+      config.headers?.Authorization ?? config.headers?.authorization;
+    if (r.auth && !authHeader)
+      fail(401, "Session expired. Please log in again.");
 
-    const params = Object.fromEntries(r.keys.map((k, i) => [k, decodeURIComponent(match[i + 1])]));
+    const params = Object.fromEntries(
+      r.keys.map((k, i) => [k, decodeURIComponent(match[i + 1])]),
+    );
     try {
       const result = r.handler({ params, query, body: parseBody(config.data) });
       return respond(result.status ?? 200, result.data);
     } catch (e) {
       if (e instanceof HttpError) fail(e.status, e.message);
-      fail(500, 'Unexpected server error.');
+      fail(500, "Unexpected server error.");
     }
   }
 
