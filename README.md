@@ -30,7 +30,8 @@ A mobile app for browsing, renting and managing active rentals of electric vehic
 - Expo SDK 57 · React Native 0.86 · React 19 · TypeScript (strict)
 - React Navigation 7 (`native-stack`, `bottom-tabs`)
 - Axios (custom adapter for the mock API)
-- `@react-native-async-storage/async-storage`, `@expo/vector-icons`
+- `expo-secure-store` (session storage; `@react-native-async-storage/async-storage` is the web fallback)
+- `@expo/vector-icons`
 
 ---
 
@@ -84,7 +85,9 @@ src/
 │   ├── StatusTag.tsx           # colour-coded live status pill
 │   ├── BatteryIndicator.tsx    # battery gauge
 │   ├── StatTile.tsx            # small metric tile
-│   ├── FilterChips.tsx         # single-select chips
+│   ├── FilterChips.tsx         # single-select chips (durations, issue types)
+│   ├── SegmentedFilter.tsx     # status filter bar on the fleet screen
+│   ├── IconTileSelector.tsx    # vehicle-type tiles on the fleet screen
 │   ├── ScreenState.tsx         # Loading / Error / Empty views, error banner
 │   └── ScreenContainer.tsx     # responsive page wrapper
 ├── screens/
@@ -108,7 +111,7 @@ src/
 ├── services/
 │   ├── config.ts               # USE_MOCK_API flag, base URL, timeouts
 │   ├── apiClient.ts            # Axios instance, auth token interceptor, error normalisation
-│   ├── authService.ts
+│   ├── authService.ts          # login + session save / load / clear (SecureStore)
 │   ├── assetService.ts
 │   ├── rentalService.ts
 │   └── mock/
@@ -138,12 +141,16 @@ Screens never call Axios directly; they consume hooks that expose `{ data, loadi
 | POST | `/rentals` | `{ assetId, durationMinutes }` → rental (409 if busy) |
 | POST | `/rentals/:id/end` | Ends trip, returns fare |
 | POST | `/rentals/:id/issues` | `{ category, description }` |
+| GET | `/rentals/history` | Completed rentals |
 
-All endpoints except login require `Authorization: Bearer <token>`.
+All endpoints except login require `Authorization: Bearer <token>`. Errors return `{ message }`, which the app shows to the user (e.g. a `409` when the vehicle was just taken).
+
+**Session:** after login the token and user are saved with `expo-secure-store` (iOS Keychain / Android Keystore) under `leadwisdom.session`, restored when the app opens and cleared on logout. On web, where SecureStore is not available, AsyncStorage is used instead.
 
 **Navigation:** auth and app screens are rendered conditionally in a single stack, so after login the Login screen is not in the back history, and logout returns straight to it. Detail and Report Issue (modal) are pushed above the tab navigator.
 
 **Responsiveness:** the catalog uses 1 / 2 / 3 grid columns at < 600 / ≥ 600 / ≥ 1024 dp width; forms and detail pages are centred with a max width on tablets; layouts use flex + wrapping tiles rather than fixed widths.
+
 ---
 
 ## App walkthrough
