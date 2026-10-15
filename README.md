@@ -6,22 +6,23 @@ A mobile app for browsing, renting and managing active rentals of electric vehic
 
 ## Features
 
-| Requirement (from brief) | Where it lives |
-|---|---|
-| **Authentication screen** with client-side validation for phone **or** email | `src/screens/LoginScreen.tsx`, `src/utils/validation.ts` |
-| **Catalog / Home** — scrollable grid of assets with **live status tags**, **battery metrics** and **hourly rates** | `src/screens/CatalogScreen.tsx`, `src/components/AssetCard.tsx` |
-| **Active Session** — live **countdown timer**, **status indicators**, **End Trip** / **Report Issue** actions | `src/screens/ActiveSessionScreen.tsx`, `src/hooks/useCountdown.ts` |
-| API calls with **Axios inside custom hooks**, with loading / error / success states | `src/hooks/useApi.ts`, `useMutation.ts`, `useAssets.ts`, `useActiveRental.ts` |
-| **React Navigation — Stack & Tabs** | `src/navigation/` |
-| Reusable components: asset cards, state indicators, buttons, inputs | `src/components/` |
-| Responsive layout across phone / tablet sizes | `src/hooks/useResponsive.ts`, `ScreenContainer.tsx` |
+| Requirement (from brief)                                                                                           | Where it lives                                                                |
+| ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| **Authentication screen** with client-side validation for phone **or** email                                       | `src/screens/LoginScreen.tsx`, `src/utils/validation.ts`                      |
+| **Catalog / Home** — scrollable grid of assets with **live status tags**, **battery metrics** and **hourly rates** | `src/screens/CatalogScreen.tsx`, `src/components/AssetCard.tsx`               |
+| **Active Session** — live **countdown timer**, **status indicators**, **End Trip** / **Report Issue** actions      | `src/screens/ActiveSessionScreen.tsx`, `src/hooks/useCountdown.ts`            |
+| API calls with **Axios inside custom hooks**, with loading / error / success states                                | `src/hooks/useApi.ts`, `useMutation.ts`, `useAssets.ts`, `useActiveRental.ts` |
+| **React Navigation — Stack & Tabs**                                                                                | `src/navigation/`                                                             |
+| Reusable components: asset cards, state indicators, buttons, inputs                                                | `src/components/`                                                             |
+| Responsive layout across phone / tablet sizes                                                                      | `src/hooks/useResponsive.ts`, `ScreenContainer.tsx`                           |
 
 ### Extras
+
 - **Asset Detail** screen: pick a duration (15 min – 2 hr), see estimated cost, start a rental.
 - **Report Issue** modal with category + description validation.
 - **Session persistence** with `expo-secure-store` (iOS Keychain / Android Keystore) — reopening the app keeps you logged in.
 - **Live data**: the catalog polls every 15 s; the mock server drains battery of in-use vehicles and charges docked ones, so status tags and battery levels change over time. Pull-to-refresh is also supported.
-- **Error-state demo**: Profile → *Simulate network errors* makes every API call fail with 503, so you can see the error and Retry UI.
+- **Error-state demo**: Profile → _Simulate network errors_ makes every API call fail with 503, so you can see the error and Retry UI.
 
 ---
 
@@ -38,6 +39,7 @@ A mobile app for browsing, renting and managing active rentals of electric vehic
 ## Getting started
 
 ### Prerequisites
+
 - **Node.js 20+** and npm
 - One of:
   - **Expo Go** app on a physical Android/iOS phone (easiest), or
@@ -55,6 +57,7 @@ npx expo start
 ```
 
 Then, in the Metro terminal:
+
 - press **`a`** to open on an Android emulator,
 - press **`i`** to open on an iOS simulator,
 - or **scan the QR code** with Expo Go (Android) / the Camera app (iOS).
@@ -64,9 +67,11 @@ Shortcuts are also available: `npm run android`, `npm run ios`, `npm run web`.
 > If Metro has stale cache issues: `npx expo start -c`
 
 ### Demo login
+
 No backend setup is needed. Use **any valid** email (e.g. `demo@leadwisdom.com`) or 10-digit Indian mobile number (e.g. `9876543210`) with a password of **6+ characters** (e.g. `123456`).
 
 ### Quality checks
+
 ```bash
 npx tsc --noEmit   # type-check
 ```
@@ -132,16 +137,16 @@ Screens never call Axios directly; they consume hooks that expose `{ data, loadi
 
 **Mock API:** `src/services/mock/mockServer.ts` is a small router plugged in as an **Axios adapter**, so requests go through the same interceptors, status codes and error handling as a real backend (random 400–900 ms latency included). To use a real server, set `USE_MOCK_API = false` and `API_BASE_URL` in `src/services/config.ts`.
 
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/auth/login` | `{ identifier, password }` → `{ token, user }` |
-| GET | `/assets?status=&type=` | Fleet list (filterable) |
-| GET | `/assets/:id` | Single asset |
-| GET | `/rentals/active` | Current rental or `null` |
-| POST | `/rentals` | `{ assetId, durationMinutes }` → rental (409 if busy) |
-| POST | `/rentals/:id/end` | Ends trip, returns fare |
-| POST | `/rentals/:id/issues` | `{ category, description }` |
-| GET | `/rentals/history` | Completed rentals |
+| Method | Endpoint                | Description                                           |
+| ------ | ----------------------- | ----------------------------------------------------- |
+| POST   | `/auth/login`           | `{ identifier, password }` → `{ token, user }`        |
+| GET    | `/assets?status=&type=` | Fleet list (filterable)                               |
+| GET    | `/assets/:id`           | Single asset                                          |
+| GET    | `/rentals/active`       | Current rental or `null`                              |
+| POST   | `/rentals`              | `{ assetId, durationMinutes }` → rental (409 if busy) |
+| POST   | `/rentals/:id/end`      | Ends trip, returns fare                               |
+| POST   | `/rentals/:id/issues`   | `{ category, description }`                           |
+| GET    | `/rentals/history`      | Completed rentals                                     |
 
 All endpoints except login require `Authorization: Bearer <token>`. Errors return `{ message }`, which the app shows to the user (e.g. a `409` when the vehicle was just taken).
 
@@ -156,7 +161,7 @@ All endpoints except login require `Authorization: Bearer <token>`. Errors retur
 ## App walkthrough
 
 1. **Login** — enter an email or mobile number; the field detects which one and validates it inline.
-2. **Fleet** — browse assets, filter by status/type, pull to refresh. Tap an *Available* asset.
+2. **Fleet** — browse assets, filter by status/type, pull to refresh. Tap an _Available_ asset.
 3. **Asset Details** — choose a duration and tap **Start Rental**.
 4. **Active Trip** — watch the countdown, fare, battery and range update live. Try **Report Issue**, then **End Trip** — you're taken back to the fleet.
-5. **Profile** — toggle *Simulate network errors* to inspect error states, or log out.
+5. **Profile** — toggle _Simulate network errors_ to inspect error states, or log out.
