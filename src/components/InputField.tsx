@@ -37,7 +37,6 @@ export const InputField = forwardRef<TextInput, InputFieldProps>(
             placeholderTextColor={colors.textMuted}
             style={[styles.input, style]}
             secureTextEntry={secureToggle ? hidden : rest.secureTextEntry}
-            accessibilityLabel={label}
             onFocus={(e) => {
               setFocused(true);
               onFocus?.(e);
@@ -51,15 +50,13 @@ export const InputField = forwardRef<TextInput, InputFieldProps>(
             <Pressable
               onPress={() => setHidden((h) => !h)}
               hitSlop={10}
-              accessibilityRole="button"
-              accessibilityLabel={hidden ? 'Show password' : 'Hide password'}
             >
               <Ionicons name={hidden ? 'eye-outline' : 'eye-off-outline'} size={20} color={colors.textMuted} />
             </Pressable>
           )}
         </View>
         {error ? (
-          <Text style={styles.error} accessibilityLiveRegion="polite">
+          <Text style={styles.error}>
             {error}
           </Text>
         ) : helperText ? (

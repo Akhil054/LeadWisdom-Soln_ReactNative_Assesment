@@ -56,7 +56,7 @@ export const ActiveSessionScreen = ({ navigation }: MainTabScreenProps<'ActiveTr
     );
     if (!ok) return;
     const completed = await endTrip.mutate(rental.id);
-    if (completed) navigation.navigate('TripSummary', { rental: completed });
+    if (completed) navigation.navigate('Catalog');
   };
 
   return (
@@ -90,8 +90,6 @@ export const ActiveSessionScreen = ({ navigation }: MainTabScreenProps<'ActiveTr
         <Text style={styles.timerLabel}>{isOverdue ? 'Over booked time by' : 'Time remaining'}</Text>
         <Text
           style={[styles.timer, { color: accent, fontSize: isTablet ? 64 : 52 }]}
-          accessibilityRole="timer"
-          accessibilityLabel={`${isOverdue ? 'Overtime' : 'Time remaining'} ${formatDuration(remainingMs)}`}
         >
           {formatDuration(remainingMs)}
         </Text>

@@ -25,9 +25,6 @@ export function IconTileSelector<T extends string>({ options, selected, onChange
           <Pressable
             key={opt.value}
             onPress={() => onChange(opt.value)}
-            accessibilityRole="button"
-            accessibilityLabel={opt.label}
-            accessibilityState={{ selected: active }}
             style={({ pressed }) => [styles.tile, active && styles.tileActive, pressed && styles.pressed]}
           >
             <View style={[styles.iconWrap, active && styles.iconWrapActive]}>

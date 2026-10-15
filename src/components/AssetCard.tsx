@@ -25,8 +25,6 @@ const AssetCardBase = ({ asset, onPress }: AssetCardProps) => {
   return (
     <Pressable
       onPress={() => onPress(asset)}
-      accessibilityRole="button"
-      accessibilityLabel={`${asset.name}, ${asset.status}, battery ${asset.batteryLevel} percent, ${asset.hourlyRate} rupees per hour`}
       style={({ pressed }) => [
         styles.card,
         pressed && styles.pressed,

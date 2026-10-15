@@ -58,8 +58,6 @@ export const CatalogScreen = ({ navigation }: MainTabScreenProps<'Catalog'>) => 
         <Pressable
           style={styles.activeBanner}
           onPress={() => navigation.navigate('ActiveTrip')}
-          accessibilityRole="button"
-          accessibilityLabel="You have an active trip. Open it."
         >
           <Ionicons name="timer" size={20} color={colors.white} />
           <View style={styles.flex}>

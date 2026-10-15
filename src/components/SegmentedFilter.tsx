@@ -28,8 +28,6 @@ export function SegmentedFilter<T extends string>({ options, selected, onChange 
             <Pressable
               key={opt.value}
               onPress={() => onChange(opt.value)}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: active }}
               style={({ pressed }) => [styles.segment, active && styles.segmentActive, pressed && !active && styles.pressed]}
             >
               {opt.icon ? (

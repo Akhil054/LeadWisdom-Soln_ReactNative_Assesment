@@ -6,7 +6,6 @@ import { LoadingView } from '../components';
 import { LoginScreen } from '../screens/LoginScreen';
 import { AssetDetailScreen } from '../screens/AssetDetailScreen';
 import { ReportIssueScreen } from '../screens/ReportIssueScreen';
-import { TripSummaryScreen } from '../screens/TripSummaryScreen';
 import { colors } from '../theme';
 import { MainTabs } from './MainTabs';
 import { RootStackParamList } from './types';
@@ -45,11 +44,6 @@ export const RootNavigator = () => {
               name="ReportIssue"
               component={ReportIssueScreen}
               options={{ title: 'Report Issue', presentation: 'modal' }}
-            />
-            <Stack.Screen
-              name="TripSummary"
-              component={TripSummaryScreen}
-              options={{ title: 'Trip Summary', headerBackVisible: false, gestureEnabled: false }}
             />
           </>
         ) : (

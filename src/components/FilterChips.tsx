@@ -23,8 +23,6 @@ export function FilterChips<T extends string>({ options, selected, onChange, wra
       <Pressable
         key={opt.value}
         onPress={() => onChange(opt.value)}
-        accessibilityRole="button"
-        accessibilityState={{ selected: active }}
         style={[styles.chip, active && styles.chipActive]}
       >
         <Text style={[styles.label, active && styles.labelActive]}>{opt.label}</Text>

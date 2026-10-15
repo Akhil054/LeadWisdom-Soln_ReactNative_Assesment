@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { setAuthToken, setUnauthorizedHandler } from '../services/apiClient';
+import { setAuthToken } from '../services/apiClient';
 import { authService } from '../services/authService';
 import { AuthResponse, User } from '../types';
 
@@ -40,14 +40,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setBootstrapping(false);
     })();
   }, []);
-
-  // Any 401 from the API logs the user out.
-  useEffect(() => {
-    setUnauthorizedHandler(() => {
-      signOut();
-    });
-    return () => setUnauthorizedHandler(null);
-  }, [signOut]);
 
   const value = useMemo(
     () => ({ user, bootstrapping, signIn, signOut }),

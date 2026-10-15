@@ -5,7 +5,7 @@ import { colors, spacing } from '../theme';
 import { AppButton } from './AppButton';
 
 export const LoadingView = ({ message = 'Loading…' }: { message?: string }) => (
-  <View style={styles.center} accessibilityLiveRegion="polite">
+  <View style={styles.center}>
     <ActivityIndicator size="large" color={colors.primary} />
     <Text style={styles.message}>{message}</Text>
   </View>
@@ -43,7 +43,7 @@ export const EmptyView = ({ icon = 'file-tray-outline', title, message, actionLa
 
 /** Inline error banner for failed mutations (doesn't replace the screen). */
 export const ErrorBanner = ({ message }: { message: string }) => (
-  <View style={styles.banner} accessibilityLiveRegion="assertive">
+  <View style={styles.banner}>
     <Ionicons name="alert-circle" size={18} color={colors.danger} />
     <Text style={styles.bannerText}>{message}</Text>
   </View>

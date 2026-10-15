@@ -24,7 +24,6 @@ export const StatusTag = ({ status, label }: StatusTagProps) => {
   return (
     <View
       style={[styles.tag, { backgroundColor: p.bg }]}
-      accessibilityLabel={`Status: ${text}`}
     >
       <View style={[styles.dot, { backgroundColor: p.fg }]} />
       <Text style={[styles.text, { color: p.fg }]}>{text}</Text>

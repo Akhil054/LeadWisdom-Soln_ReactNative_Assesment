@@ -1,7 +1,6 @@
 import { CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-import { Rental } from '../types';
 
 export type MainTabParamList = {
   Catalog: undefined;
@@ -16,7 +15,6 @@ export type RootStackParamList = {
   MainTabs: NavigatorScreenParams<MainTabParamList>;
   AssetDetail: { assetId: string };
   ReportIssue: { rentalId: string; assetName: string };
-  TripSummary: { rental: Rental };
 };
 
 export type RootStackScreenProps<T extends keyof RootStackParamList> = NativeStackScreenProps<

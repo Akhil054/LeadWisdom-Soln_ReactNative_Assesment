@@ -17,7 +17,7 @@ export const BatteryIndicator = ({ level, large = false }: BatteryIndicatorProps
   const color = batteryColor(clamped);
 
   return (
-    <View style={styles.row} accessibilityLabel={`Battery ${clamped} percent`}>
+    <View style={styles.row}>
       <View style={[styles.shell, large && styles.shellLarge]}>
         <View style={[styles.fill, { width: `${clamped}%`, backgroundColor: color }]} />
       </View>

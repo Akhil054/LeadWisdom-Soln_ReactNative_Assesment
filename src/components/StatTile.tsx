@@ -12,7 +12,7 @@ interface StatTileProps {
 
 /** Small metric tile used on detail, active session and summary screens. */
 export const StatTile = ({ icon, label, value, tint = colors.primary }: StatTileProps) => (
-  <View style={styles.tile} accessibilityLabel={typeof value === 'string' ? `${label}: ${value}` : label}>
+  <View style={styles.tile}>
     <Ionicons name={icon} size={18} color={tint} />
     <Text style={styles.label}>{label}</Text>
     {typeof value === 'string' ? <Text style={styles.value}>{value}</Text> : value}

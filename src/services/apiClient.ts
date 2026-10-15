@@ -14,15 +14,9 @@ export const apiClient = create({
 // --- auth token handling ------------------------------------------------
 
 let authToken: string | null = null;
-let onUnauthorized: (() => void) | null = null;
 
 export const setAuthToken = (token: string | null) => {
   authToken = token;
-};
-
-/** Registered by AuthContext so a 401 anywhere logs the user out. */
-export const setUnauthorizedHandler = (handler: (() => void) | null) => {
-  onUnauthorized = handler;
 };
 
 apiClient.interceptors.request.use((config) => {
@@ -32,11 +26,7 @@ apiClient.interceptors.request.use((config) => {
 
 apiClient.interceptors.response.use(
   (response) => response,
-  (error: AxiosError) => {
-    const isLogin = error.config?.url?.includes('/auth/login');
-    if (error.response?.status === 401 && !isLogin) onUnauthorized?.();
-    return Promise.reject(toApiError(error));
-  },
+  (error: AxiosError) => Promise.reject(toApiError(error)),
 );
 
 // --- error normalisation --------------------------------------------------

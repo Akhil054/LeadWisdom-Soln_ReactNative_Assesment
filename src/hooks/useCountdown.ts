@@ -10,10 +10,7 @@ export interface Countdown {
   progress: number;
 }
 
-/**
- * Ticks every second. Derives time from the wall clock (not by decrementing a
- * counter), so it stays accurate after the app was backgrounded.
- */
+/** Ticks every second and computes remaining / elapsed time of the trip. */
 export const useCountdown = (startIso?: string, endIso?: string): Countdown => {
   const [now, setNow] = useState(() => Date.now());
 

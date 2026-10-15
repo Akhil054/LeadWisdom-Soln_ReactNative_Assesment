@@ -49,7 +49,6 @@ export const ProfileScreen = () => {
             value={simulateErrors}
             onValueChange={toggleErrors}
             trackColor={{ true: colors.primary, false: colors.border }}
-            accessibilityLabel="Simulate network errors"
           />
         </View>
       )}

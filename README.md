@@ -19,11 +19,9 @@ A mobile app for browsing, renting and managing active rentals of electric vehic
 ### Extras
 - **Asset Detail** screen: pick a duration (15 min – 2 hr), see estimated cost, start a rental.
 - **Report Issue** modal with category + description validation.
-- **Trip Summary** after ending a trip (ride time, total fare, reported issues).
-- **Session persistence** with AsyncStorage — reopening the app keeps you logged in; any `401` logs you out automatically.
+- **Session persistence** with `expo-secure-store` (iOS Keychain / Android Keystore) — reopening the app keeps you logged in.
 - **Live data**: the catalog polls every 15 s; the mock server drains battery of in-use vehicles and charges docked ones, so status tags and battery levels change over time. Pull-to-refresh is also supported.
 - **Error-state demo**: Profile → *Simulate network errors* makes every API call fail with 503, so you can see the error and Retry UI.
-- Accessibility labels and roles on interactive elements; countdown is derived from the wall clock so it stays accurate after the app is backgrounded.
 
 ---
 
@@ -95,10 +93,9 @@ src/
 │   ├── AssetDetailScreen.tsx
 │   ├── ActiveSessionScreen.tsx
 │   ├── ReportIssueScreen.tsx
-│   ├── TripSummaryScreen.tsx
 │   └── ProfileScreen.tsx
 ├── navigation/
-│   ├── RootNavigator.tsx       # Stack: Login ⇄ (Tabs, AssetDetail, ReportIssue, TripSummary)
+│   ├── RootNavigator.tsx       # Stack: Login ⇄ (Tabs, AssetDetail, ReportIssue)
 │   ├── MainTabs.tsx            # Bottom tabs: Fleet, Active Trip, Profile
 │   └── types.ts                # typed route params
 ├── hooks/
@@ -110,7 +107,7 @@ src/
 │   └── useResponsive.ts        # breakpoints → grid columns, max widths
 ├── services/
 │   ├── config.ts               # USE_MOCK_API flag, base URL, timeouts
-│   ├── apiClient.ts            # Axios instance, auth + 401 interceptors, error normalisation
+│   ├── apiClient.ts            # Axios instance, auth token interceptor, error normalisation
 │   ├── authService.ts
 │   ├── assetService.ts
 │   ├── rentalService.ts
@@ -144,7 +141,7 @@ Screens never call Axios directly; they consume hooks that expose `{ data, loadi
 
 All endpoints except login require `Authorization: Bearer <token>`.
 
-**Navigation:** auth and app screens are rendered conditionally in a single stack, so after login the Login screen is not in the back history, and logout/401 returns straight to it. Detail, Report Issue (modal) and Trip Summary are pushed above the tab navigator.
+**Navigation:** auth and app screens are rendered conditionally in a single stack, so after login the Login screen is not in the back history, and logout returns straight to it. Detail and Report Issue (modal) are pushed above the tab navigator.
 
 **Responsiveness:** the catalog uses 1 / 2 / 3 grid columns at < 600 / ≥ 600 / ≥ 1024 dp width; forms and detail pages are centred with a max width on tablets; layouts use flex + wrapping tiles rather than fixed widths.
 ---
@@ -154,6 +151,5 @@ All endpoints except login require `Authorization: Bearer <token>`.
 1. **Login** — enter an email or mobile number; the field detects which one and validates it inline.
 2. **Fleet** — browse assets, filter by status/type, pull to refresh. Tap an *Available* asset.
 3. **Asset Details** — choose a duration and tap **Start Rental**.
-4. **Active Trip** — watch the countdown, fare, battery and range update live. Try **Report Issue**, then **End Trip**.
-5. **Trip Summary** — see total fare; go back to the fleet.
-6. **Profile** — toggle *Simulate network errors* to inspect error states, or log out.
+4. **Active Trip** — watch the countdown, fare, battery and range update live. Try **Report Issue**, then **End Trip** — you're taken back to the fleet.
+5. **Profile** — toggle *Simulate network errors* to inspect error states, or log out.
